@@ -1,5 +1,4 @@
-import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import log
 import os
 import yaml
@@ -176,8 +175,9 @@ class CloseBookingModal(disnake.ui.Modal):
                     old_embed.add_field(
                         "Окончательное топливо", inter.text_values["end_fuel"]
                     )
+                    tzinfo = timezone(timedelta(hours=3))
                     old_embed.add_field(
-                        "Время сдачи", datetime.now().strftime("%Y-%m-%d %H:%M")
+                        "Время сдачи (МСК)", datetime.now(tzinfo).strftime("%Y-%m-%d %H:%M")
                     )
                     await message.edit(embed=old_embed)
 

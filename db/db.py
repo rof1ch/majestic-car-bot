@@ -1,6 +1,6 @@
 import sqlite3
 from log import Logger
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 
 def init_db():
@@ -169,11 +169,12 @@ class ORM:
 
     def close_booking(self, booking_id, end_fuel):
         try:
+            tzinfo = timezone(timedelta(hours=3))
             self.cursor.execute(
                 "UPDATE CarsUsers SET end_fuel=(?), status=1, end_time = (?) WHERE id = (?)",
                 (
                     end_fuel,
-                    datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    datetime.now(tzinfo).strftime("%Y-%m-%d %H:%M"),
                     booking_id,
                 ),
             )
