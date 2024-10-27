@@ -2,7 +2,6 @@
 
 __pycache__
 
-bot.dev.log
-bot.log
+logs/*
 
 .env
