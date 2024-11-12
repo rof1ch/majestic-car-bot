@@ -177,7 +177,8 @@ class CloseBookingModal(disnake.ui.Modal):
                     )
                     tzinfo = timezone(timedelta(hours=3))
                     old_embed.add_field(
-                        "Время сдачи (МСК)", datetime.now(tzinfo).strftime("%Y-%m-%d %H:%M")
+                        "Время сдачи (МСК)",
+                        datetime.now(tzinfo).strftime("%Y-%m-%d %H:%M"),
                     )
                     await message.edit(embed=old_embed)
 
@@ -209,7 +210,7 @@ class CloseBooking(disnake.ui.View):
 
 
 class GetCarModal(disnake.ui.Modal):
-    def __init__(self):
+    def __init__(self, list_cars):
         components = [
             disnake.ui.TextInput(
                 label="ID машины",
@@ -224,10 +225,13 @@ class GetCarModal(disnake.ui.Modal):
                 style=disnake.TextInputStyle.short,
             ),
         ]
+        self.list_cars = list_cars
         super().__init__(title="Взять автомобиль", components=components)
 
     async def callback(self, inter: disnake.ModalInteraction):
-        car, err = orm.get_car(inter.text_values["car_id"])
+        list_id = int(inter.text_values["car_id"]) - 1
+        car_id = self.list_cars[list_id][0]
+        car, err = orm.get_car(car_id)
         if err != None:
             error_embed.description = err
             await inter.response.send_message(
@@ -243,7 +247,7 @@ class GetCarModal(disnake.ui.Modal):
             )
         else:
             booking_id, err = orm.create_booking(
-                inter.text_values["car_id"],
+                car_id,
                 inter.text_values["start_fuel"],
                 inter.author.id,
             )
@@ -273,7 +277,7 @@ class GetCarModal(disnake.ui.Modal):
                 if err != None:
                     error_embed.description = err
                     await inter.response.send_message(
-                        embed=error_embed, ephemeral=True, delete_after=15
+                        embed=error_embed, ephemeral=True, delete_after=MESSAGE_DELAY
                     )
                 else:
                     log_chanel = client.get_channel(chanel_id)
@@ -297,14 +301,15 @@ class GetCarModal(disnake.ui.Modal):
 
 
 class UserMenu(disnake.ui.View):
-    def __init__(self):
+    def __init__(self, list_cars):
         super().__init__(timeout=None)
+        self.list_cars = list_cars
 
     @disnake.ui.button(label="Взять машину", style=disnake.ButtonStyle.green)
     async def get_car(
         self, button: disnake.ui.button, inter: disnake.MessageInteraction
     ):
-        await inter.response.send_modal(modal=GetCarModal())
+        await inter.response.send_modal(modal=GetCarModal(self.list_cars))
 
     @disnake.ui.button(label="Список взятых машин", style=disnake.ButtonStyle.primary)
     async def list_cars(
@@ -365,9 +370,9 @@ class StartBot(disnake.ui.View):
     async def get_car(
         self, button: disnake.ui.Button, inter: disnake.MessageInteraction
     ):
-        view = UserMenu()
         embed = disnake.Embed(title="Список машин", colour=0xFB8500)
         cars, err = orm.get_list()
+        view = UserMenu(cars)
         if err != None:
             error_embed.description = err
             await inter.response.send_message(
@@ -375,8 +380,8 @@ class StartBot(disnake.ui.View):
             )
         else:
             embed.description = ""
-            for car in cars:
-                embed.description += f"{car[0]} - {car[1]}\n"
+            for key, car in enumerate(cars):
+                embed.description += f"{key+1} - {car[1]}\n"
             await inter.response.send_message(
                 embed=embed, view=view, ephemeral=True, delete_after=MESSAGE_DELAY
             )
@@ -451,7 +456,8 @@ class AdminMenu(disnake.ui.View):
                 embed=embed, ephemeral=True, delete_after=MESSAGE_DELAY
             )
 
-server_id, _ = get_key_from_yaml('server_id')
+
+server_id, _ = get_key_from_yaml("server_id")
 client = commands.Bot(
     command_prefix="!", intents=disnake.Intents.all(), test_guilds=[server_id]
 )

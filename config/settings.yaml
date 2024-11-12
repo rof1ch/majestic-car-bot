@@ -1,4 +1,4 @@
-log_chanel: 
-main_chanel: 
+log_chanel:
+main_chanel:
 message_delay: 15 # Через сколько удалиться сообщение
-server_id:  # ID сервера
+server_id: # ID сервера
