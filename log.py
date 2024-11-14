@@ -10,14 +10,14 @@ class Logger:
             logging.basicConfig(
                 level=logging.DEBUG,
                 filename="logs/bot.dev.log",
-                filemode="w",
+                filemode="a",
                 format="%(asctime)s %(levelname)s %(message)s",
             )
         elif app_level == "prod":
             logging.basicConfig(
                 level=logging.INFO,
                 filename="logs/bot.log",
-                filemode="w",
+                filemode="a",
                 format="%(asctime)s %(levelname)s %(message)s",
             )
 
