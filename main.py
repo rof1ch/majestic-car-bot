@@ -296,7 +296,7 @@ class GetCarModal(disnake.ui.Modal):
                     else:
                         view = CloseBooking(booking_id, message.id)
                         await inter.response.send_message(
-                            embed=embed, ephemeral=True, view=view
+                            embed=embed, ephemeral=True, view=view, delete_after=1800
                         )
 
 
@@ -310,35 +310,6 @@ class UserMenu(disnake.ui.View):
         self, button: disnake.ui.button, inter: disnake.MessageInteraction
     ):
         await inter.response.send_modal(modal=GetCarModal(self.list_cars))
-
-    @disnake.ui.button(label="Список взятых машин", style=disnake.ButtonStyle.primary)
-    async def list_cars(
-        self, button: disnake.ui.button, inter: disnake.MessageInteraction
-    ):
-        booking_list, err = orm.get_user_bookings(inter.author.id)
-        if err != None:
-            error_embed.description = err
-            await inter.response.send_message(
-                embed=error_embed, ephemeral=True, delete_after=MESSAGE_DELAY
-            )
-        else:
-            if len(booking_list) == 0:
-                embed = disnake.Embed(title="Список пуст", color=disnake.Color.red())
-                await inter.response.send_message(
-                    embed=embed, ephemeral=True, delete_after=MESSAGE_DELAY
-                )
-            else:
-                for booking in booking_list:
-                    embed = disnake.Embed(
-                        title="Бронь машины", color=disnake.Color.blue()
-                    )
-                    embed.add_field("Машина", booking[9])
-                    embed.add_field("Начальное топливо", booking[3])
-                    await inter.send(
-                        embed=embed,
-                        view=CloseBooking(booking[0], booking[6]),
-                        ephemeral=True,
-                    )
 
 
 class GetListBookings(disnake.ui.View):
@@ -379,12 +350,50 @@ class StartBot(disnake.ui.View):
                 error_embed, ephemeral=True, delete_after=MESSAGE_DELAY
             )
         else:
+
             embed.description = ""
             for key, car in enumerate(cars):
                 embed.description += f"{key+1} - {car[1]}\n"
+
             await inter.response.send_message(
                 embed=embed, view=view, ephemeral=True, delete_after=MESSAGE_DELAY
             )
+
+    @disnake.ui.button(
+        label="Сдать машину",
+        style=disnake.ButtonStyle.danger,
+        custom_id="start_bot_button_close_bookings",
+    )
+    async def list_cars(
+        self, button: disnake.ui.button, inter: disnake.MessageInteraction
+    ):
+        booking_list, err = orm.get_user_bookings(inter.author.id)
+        if err != None:
+            error_embed.description = err
+            await inter.response.send_message(
+                embed=error_embed, ephemeral=True, delete_after=MESSAGE_DELAY
+            )
+        else:
+            if len(booking_list) == 0:
+                embed = disnake.Embed(
+                    title="У вас нет активной брони", color=disnake.Color.red()
+                )
+                await inter.response.send_message(
+                    embed=embed, ephemeral=True, delete_after=MESSAGE_DELAY
+                )
+            else:
+                for booking in booking_list:
+                    embed = disnake.Embed(
+                        title="Бронь машины", color=disnake.Color.blue()
+                    )
+                    embed.add_field("Машина", booking[9])
+                    embed.add_field("Начальное топливо", booking[3])
+                    await inter.send(
+                        embed=embed,
+                        view=CloseBooking(booking[0], booking[6]),
+                        ephemeral=True,
+                        delete_after=3600,
+                    )
 
 
 class AdminMenu(disnake.ui.View):
