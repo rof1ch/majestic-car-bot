@@ -312,11 +312,6 @@ class UserMenu(disnake.ui.View):
         await inter.response.send_modal(modal=GetCarModal(self.list_cars))
 
 
-class GetListBookings(disnake.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-
-
 class RemoveCar(disnake.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
