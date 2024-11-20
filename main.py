@@ -296,7 +296,7 @@ class GetCarModal(disnake.ui.Modal):
                     else:
                         view = CloseBooking(booking_id, message.id)
                         await inter.response.send_message(
-                            embed=embed, ephemeral=True, view=view, delete_after=1800
+                            embed=embed, ephemeral=True, view=view, delete_after=600
                         )
 
 
@@ -392,8 +392,13 @@ class StartBot(disnake.ui.View):
                         embed=embed,
                         view=CloseBooking(booking[0], booking[6]),
                         ephemeral=True,
-                        delete_after=3600,
+                        delete_after=600,
                     )
+
+
+class ListBookingAdmin(disnake.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
 
 
 class AdminMenu(disnake.ui.View):
@@ -438,6 +443,34 @@ class AdminMenu(disnake.ui.View):
             ephemeral=True,
             delete_after=MESSAGE_DELAY,
         )
+
+    @disnake.ui.button(
+        label="Список арендованных машин", style=disnake.ButtonStyle.primary
+    )
+    async def list_bookings(
+        self, button: disnake.ui.button, inter: disnake.MessageInteraction
+    ):
+        bookings, err = orm.get_bookings()
+        if err != None:
+            error_embed.description = err
+            await inter.response.send_message(
+                embed=error_embed, ephemeral=True, delete_after=MESSAGE_DELAY
+            )
+        elif len(bookings) == 0:
+            embed = disnake.Embed(title="Список пуст")
+            await inter.response.send_message(
+                embed=embed, ephemeral=True, delete_after=MESSAGE_DELAY
+            )
+        else:
+            string = ""
+            for booking in bookings:
+                string += (
+                    f"**Пользователь:** <@!{booking[0]}> - **Машина:** {booking[1]} \n"
+                )
+            embed = disnake.Embed(
+                title="Список арендованных машин", description=string, color=0x66C7F4
+            )
+            await inter.response.send_message(embed=embed, ephemeral=True)
 
     @disnake.ui.button(label="Запустить бота", style=disnake.ButtonStyle.green)
     async def start_bot(

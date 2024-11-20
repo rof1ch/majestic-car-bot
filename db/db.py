@@ -192,3 +192,13 @@ class ORM:
                 4, f"Ошибка при закрытие брони - {booking_id}.Ошибка: {error}"
             )
             return f"Ошибка при закрытие брони"
+
+    def get_bookings(self):
+        try:
+            self.cursor.execute(
+                "SELECT CarsUsers.user_id, Cars.car_name FROM CarsUsers JOIN Cars ON Cars.id = CarsUsers.car_id WHERE CarsUsers.status = 0"
+            )
+            return self.cursor.fetchall(), None
+        except sqlite3.Error as error:
+            self.logger.log(4, f"Ошибка при при получение записей.Ошибка: {error}")
+            return None, f"Ошибка при при получение записей"
